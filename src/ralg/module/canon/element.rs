@@ -48,19 +48,16 @@ where
     QuotientElement<R, I>: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.is_empty() {
-            true => write!(f, "0"),
-            false => {
-                write!(
-                    f,
-                    "{}",
-                    self.buffer
-                        .iter()
-                        .map(|mark| format!("{:?}", mark.thing))
-                        .collect::<Vec<_>>()
-                        .join(" x "),
-                )
-            }
+        if self.is_empty() { write!(f, "(0)") } else {
+            write!(
+                f,
+                "({})",
+                self.buffer
+                    .iter()
+                    .map(|mark| format!("{:?}", mark.thing))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            )
         }
     }
 }
@@ -71,19 +68,18 @@ where
     QuotientElement<R, I>: fmt::Display,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.is_empty() {
-            true => write!(f, "0"),
-            false => {
-                write!(
-                    f,
-                    "{}",
-                    self.buffer
-                        .iter()
-                        .map(|mark| format!("Z{}", mark.thing.ideal))
-                        .collect::<Vec<_>>()
-                        .join("x"),
-                )
-            }
+        if self.is_empty() {
+            write!(f, "(0)")
+        } else {
+            write!(
+                f,
+                "({})",
+                self.buffer
+                    .iter()
+                    .map(|mark| format!("{}", mark.thing.ideal))
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            )
         }
     }
 }

@@ -10,7 +10,6 @@ all the following traits should bre prefixed with Partial,
 but since we are unable to provide any types which would not be partial,
 this seems like a lot of work for no actual benefit other than pedantry.
 */
-
 /*
 if we ever need this trait to work between different types,
 source and target can be split,
@@ -67,12 +66,11 @@ pub trait Endo<O: Object>: Morphism<O> + Clone + Eq + Hash {
                     .clone()
                     .try_compose(self)
                     .expect("endo should be self composable");
-                match seen_iterations.contains(&next_iteration) {
-                    true => None,
-                    false => {
-                        seen_iterations.insert(next_iteration.clone());
-                        Some(next_iteration)
-                    }
+                if seen_iterations.contains(&next_iteration) {
+                    None
+                } else {
+                    seen_iterations.insert(next_iteration.clone());
+                    Some(next_iteration)
                 }
             })
             .collect()

@@ -185,12 +185,14 @@ impl<R: FactorialRing, I: PrincipalIdeal<Parent = R> + Ord> Object<R, I> {
                 &module,
                 left,
                 Matrix::from_cols_custom(
-                    module.iter().map(|mark| match left.contains(mark) {
-                        true => left.versor(mark).into_values().collect(),
-                        false => left
-                            .element_from_iterator((0..left_dim).map(|_| R::zero()))
-                            .into_values()
-                            .collect(),
+                    module.iter().map(|mark| {
+                        if left.contains(mark) {
+                            left.versor(mark).into_values().collect()
+                        } else {
+                            left.element_from_iterator((0..left_dim).map(|_| R::zero()))
+                                .into_values()
+                                .collect()
+                        }
                     }),
                     module_dim,
                     left_dim,
@@ -200,12 +202,15 @@ impl<R: FactorialRing, I: PrincipalIdeal<Parent = R> + Ord> Object<R, I> {
                 &module,
                 right,
                 Matrix::from_cols_custom(
-                    module.iter().map(|mark| match right.contains(mark) {
-                        true => right.versor(mark).into_values().collect(),
-                        false => right
-                            .element_from_iterator((0..right_dim).map(|_| R::zero()))
-                            .into_values()
-                            .collect(),
+                    module.iter().map(|mark| {
+                        if right.contains(mark) {
+                            right.versor(mark).into_values().collect()
+                        } else {
+                            right
+                                .element_from_iterator((0..right_dim).map(|_| R::zero()))
+                                .into_values()
+                                .collect()
+                        }
                     }),
                     module_dim,
                     right_dim,
@@ -252,7 +257,7 @@ impl<Period: Radix + IsGreater<U1> + Send + Sync> Object<C<Period>, CIdeal<Perio
                                 .try_compose(
                                     &smol.universal_out(
                                         &left_sub
-                                            .try_compose(&self.left_inclusion)
+                                          .try_compose(&self.left_inclusion)
                                             .expect("self.left_inclusion after left_sub"),
                                         &right_sub
                                             .try_compose(&self.right_inclusion)

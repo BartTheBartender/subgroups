@@ -128,7 +128,7 @@ pub trait Factorial: Ring + Copy {
 
     fn power_factors(self) -> impl Iterator<Item = Self> + Clone {
         let f: Vec<_> = self.factors().collect();
-        f.group_by(|x, y| x == y)
+        f.chunk_by(|x, y| x == y)
             .map(|group| {
                 group
                     .iter()

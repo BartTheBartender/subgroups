@@ -1,11 +1,7 @@
 use crate::{
-    category::{
-        object::{
-            Concrete as ConcreteObject, Duplicable as DuplicableObject,
-            Enumerable as EnumerableObject, Object as CatObject,
-            PartiallyEnumerable as PartiallyEnumerableObject,
-        },
-        PrettyName,
+    category::object::{
+        Concrete as ConcreteObject, Duplicable as DuplicableObject, Enumerable as EnumerableObject,
+        Object as CatObject, PartiallyEnumerable as PartiallyEnumerableObject,
     },
     ralg::{
         cgroup::{ideal::CIdeal, Radix, C},
@@ -25,7 +21,7 @@ use crate::{
 };
 use itertools::Itertools;
 use std::{collections::BTreeSet, fmt, sync::Arc};
-use typenum::{IsGreater, Unsigned, U1};
+use typenum::{IsGreater, U1};
 
 /* # torsion coefficients object */
 
@@ -73,69 +69,38 @@ where
     QuotientObject<R, I>: fmt::Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.is_empty() {
-            true => write!(f, "0"),
-            false => {
-                write!(
-                    f,
-                    "{}",
-                    self.buffer
-                        .iter()
-                        .map(|mark| format!("{:?}", mark.thing))
-                        .collect::<Vec<_>>()
-                        .join(" x "),
-                )
-            }
+        if self.is_empty() {
+            write!(f, "0")
+        } else {
+            write!(
+                f,
+                "{}",
+                self.buffer
+                    .iter()
+                    .map(|mark| format!("Z{:?}", mark.thing))
+                    .collect::<Vec<_>>()
+                    .join("x"),
+            )
         }
     }
 }
-
-/*
-impl<R: Ring + fmt::Display, I: Ideal<Parent = R> + Ord + fmt::Display> fmt::Display
-    for Object<R, I>
-where
-    QuotientObject<R, I>: fmt::Display,
-{
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.is_empty() {
-            true => write!(f, "0"),
-            false => {
-                write!(
-                    f,
-                    "{}",
-                    self.buffer
-                        .iter()
-                        .map(|mark| format!("Z{}", mark.thing))
-                        .collect::<Vec<_>>()
-                        .join("x"),
-                )
-            }
-        }
-    }
-}
-*/
 
 impl<Period: Radix + IsGreater<U1>> fmt::Display for Object<C<Period>, CIdeal<Period>> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.is_empty() {
-            true => write!(f, "0"),
-            false => {
-                write!(
-                    f,
-                    "{}",
-                    self.buffer
-                        .iter()
-                        .map(|mark| format!("Z{}", u16::from(mark.thing.ideal.generator())))
-                        .collect::<Vec<_>>()
-                        .join("x"),
-                )
-            }
+        if self.is_empty() {
+            write!(f, "0")
+        } else {
+            write!(
+                f,
+                "{}",
+                self.buffer
+                    .iter()
+                    .map(|mark| format!("Z{}", u16::from(mark.thing.ideal.generator())))
+                    .collect::<Vec<_>>()
+                    .join("x"),
+            )
         }
     }
-}
-
-impl<Period: Radix + IsGreater<U1> + Unsigned> PrettyName for Object<C<Period>, CIdeal<Period>> {
-    const PRETTY_NAME: &'static str = "Zn-Module";
 }
 
 /* ## functionality */
@@ -172,7 +137,7 @@ impl<R: Ring + Copy, I: Ideal<Parent = R> + Ord> Object<R, I> {
     pub fn split(self) -> (Self, Self) {
         let mut buffer = self.buffer.into_iter().enumerate().collect::<Vec<_>>();
         let buffer_left = buffer
-            .extract_if(|&mut (ref index, ref _mark)| *index % 2 == 0)
+            .extract_if(.., |&mut (ref index, ref _mark)| *index % 2 == 0)
             .map(|(_index, mark)| mark)
             .collect::<BTreeSet<_>>();
         let buffer_right = buffer
@@ -321,9 +286,12 @@ impl<R: Ring + Copy, I: Ideal<Parent = R> + Ord> Object<R, I> {
     }
 
     pub fn versor(&self, mark: &Mark<QuotientObject<R, I>>) -> <Self as ConcreteObject>::Element {
-        self.element_from_iterator(self.buffer.iter().map(|m| match m == mark {
-            true => R::one(),
-            false => R::zero(),
+        self.element_from_iterator(self.buffer.iter().map(|m| {
+            if m == mark {
+                R::one()
+            } else {
+                R::zero()
+            }
         }))
     }
 }
@@ -376,7 +344,7 @@ pub fn submodules_of_cyclic_module<Period: Radix + IsGreater<U1>>(
     let coeff = target
         .iter()
         .next()
-        .expect("we assumed the module is cyclic, so it should exactly one coefficient");
+        .expect("we assumed the module is cyclic, so it should have exactly one coefficient");
     let generator = coeff.thing.ideal.generator();
     generator
         .naive_divisors()
@@ -385,16 +353,17 @@ pub fn submodules_of_cyclic_module<Period: Radix + IsGreater<U1>>(
             CanonToCanon::new(
                 &source,
                 &target,
-                match divisor.is_one() {
-                    true => Matrix::from_buffer([], 0, 1),
-                    false => Matrix::from_buffer(
+                if divisor.is_one() {
+                    Matrix::from_buffer([], 0, 1)
+                } else {
+                    Matrix::from_buffer(
                         [generator
                             .try_divide(divisor)
                             .next()
                             .expect("divisor will divide")],
                         1,
                         1,
-                    ),
+                    )
                 },
             )
         })
@@ -419,9 +388,10 @@ pub fn quotients_of_cyclic_module<Period: Radix + IsGreater<U1>>(
             CanonToCanon::new(
                 &source,
                 &target,
-                match divisor.is_one() {
-                    true => Matrix::from_buffer([], 1, 0),
-                    false => Matrix::from_buffer([C::one()], 1, 1),
+                if divisor.is_one() {
+                    Matrix::from_buffer([], 1, 0)
+                } else {
+                    Matrix::from_buffer([C::one()], 1, 1)
                 },
             )
         })

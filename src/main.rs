@@ -1,19 +1,13 @@
 #![feature(specialization)]
-#![feature(return_position_impl_trait_in_trait)]
 #![feature(generic_const_exprs)]
 #![feature(let_chains)]
 #![feature(btree_extract_if)]
 #![feature(iterator_try_collect)]
-#![feature(extract_if)]
 #![feature(trait_alias)]
-#![feature(associated_type_bounds)]
-#![feature(arc_unwrap_or_clone)]
-#![feature(lint_reasons)]
 /* this feature is necessary to constrain matrices,
 however, a bug inside it prevents using type aliases for other types
 */
 // #![feature(lazy_type_alias)]
-#![feature(slice_group_by)]
 // visual separator
 #![allow(incomplete_features, reason = "we need nightly features")]
 #![allow(dead_code, reason = "to be removed later")] // REMOVE THIS LATER
@@ -96,59 +90,44 @@ however, a bug inside it prevents using type aliases for other types
     clippy::unneeded_field_pattern,
     clippy::unseparated_literal_suffix,
 )]
-#![allow(clippy::match_bool, reason = "i find it more readable")]
 #![allow(clippy::module_name_repetitions, reason = "this is a dumb rule")]
 /* clippy end */
 
 mod category;
 mod ralg;
-mod util;
 
 // - - -
 
 use crate::{
-    category::{
-        functors::szymczak::{SzymczakClasses, SzymczakClassesFull},
-        relation::Relation,
-        Category,
-    },
+    category::{morphism::Morphism, object::Concrete},
     ralg::{
         cgroup::{ideal::CIdeal, C},
         module::canon::object::Object as Module,
     },
 };
-use std::{fs, time::Instant};
 // parameters for the code
-use typenum::{Unsigned, U4 as N};
+use typenum::U8 as N;
 type Int = u16;
 type R = C<N>;
 type I = CIdeal<N>;
-const DIM: Int = 2;
-const RECURSION_PARAMETER: usize = 8;
 
-fn main() -> std::io::Result<()> {
-    //
-    let category_time = Instant::now();
-    let category = Category::<Module<R, I>, Relation<R, I>>::new(DIM);
-    let category_time_elapsed = category_time.elapsed();
+use std::time::Instant;
 
-    let szymczak_classes_time = Instant::now();
-    let szymczak_classes = SzymczakClasses::<Module<R, I>, Relation<R, I>>::functor::<
-        { RECURSION_PARAMETER },
-    >(&category);
-    let szymczak_classes_time_elapsed = szymczak_classes_time.elapsed();
+fn main() {
+    let group = [8,8,8].into_iter().collect::<Module<R, I>>();
+    print!("{group} ");
 
-    //warning: it is assumed that the file is run from directory "szymczak_leray"
-    fs::write(format!("results/szymczak-wide/txt/dim{}/Z{}-dim-{}", DIM, N::to_usize(), DIM), format!("{}===\nCategory generated after: {}\nIsomorphisms classes generated after: {}\nParameter of the recursion: {}\n", szymczak_classes, category_time_elapsed.as_secs_f64(), szymczak_classes_time_elapsed.as_secs_f64(), RECURSION_PARAMETER))?;
+    let start = Instant::now();
+    let subgroups = group.submodules();
+    let duration = start.elapsed();
+    
+    /*
+    println!("\nSubgroups: ");
+    for subgroup in subgroups.iter() {
+        println!("{subgroup)\n----------------------------")
+    }
+    */
 
-    let szymczak_classes_full_time = Instant::now();
-    let szymczak_classes_full =
-        SzymczakClassesFull::<Module<R, I>, Relation<R, I>>::all_isos(szymczak_classes, &category);
-    let szymczak_classes_full_time_elapsed = szymczak_classes_full_time.elapsed();
 
-    fs::write(format!("results/szymczak-wide-full/txt/dim{}/Z{}-dim-{}", DIM, N::to_usize(), DIM), format!("{}===\nCategory generated after: {}\nIsomorphisms classes generated after: {}\nAll isomorphisms added after: {}\nParameter of the recursion: {}\n", szymczak_classes_full, category_time_elapsed.as_secs_f64(), szymczak_classes_time_elapsed.as_secs_f64(), szymczak_classes_full_time_elapsed.as_secs_f64(), RECURSION_PARAMETER))?;
-
-    println!("Category generated after: {}\nIsomorphisms classes generated after: {}\nAll isomorphisms added after: {}\nParameter of the recursion: {}", category_time_elapsed.as_secs_f64(), szymczak_classes_time_elapsed.as_secs_f64(), szymczak_classes_full_time_elapsed.as_secs_f64(), RECURSION_PARAMETER);
-
-    Ok(())
+    println!("{} {:.3?}",subgroups.len(), duration.as_secs_f64()); // formatted time output
 }

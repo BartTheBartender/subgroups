@@ -10,10 +10,10 @@ use crate::{
 };
 use std::{collections::HashMap, fmt, hash::Hash, sync::Arc};
 
-pub mod functors;
+//pub mod functors;
 pub mod morphism;
 pub mod object;
-pub mod relation;
+//pub mod relation;
 
 pub type HomSet<Object, M> = HashMap<Object, HashMap<Object, Vec<M>>>;
 
@@ -89,7 +89,7 @@ impl<
             .expect("source should be an object in the category")
             .get(target)
             .expect("target should be an object in the category")
-            .to_vec()
+            .clone()
     }
 }
 
@@ -119,25 +119,25 @@ impl<O: Object + fmt::Debug, M: Morphism<O> + fmt::Debug> fmt::Debug for Categor
     }
 }
 
-pub trait PrettyName {
-    const PRETTY_NAME: &'static str;
-}
+//pub trait PrettyName {
+//    const PRETTY_NAME: &'static str;
+//}
 
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::{
-        category::relation::{CanonModule, Relation},
-        ralg::cgroup::{ideal::CIdeal, C},
-    };
-
-    #[test]
-    fn objects() {
-        use typenum::U5 as N;
-        type R = C<N>;
-        type I = CIdeal<N>;
-        let category = Category::<CanonModule<R, I>, Relation<R, I>>::new(1);
-
-        assert_eq!(category.into_objects().len(), 2);
-    }
-}
+//#[cfg(test)]
+//mod test {
+//    use super::*;
+//    use crate::{
+//        category::relation::{CanonModule, Relation},
+//        ralg::cgroup::{ideal::CIdeal, C},
+//    };
+//
+//    #[test]
+//    fn objects() {
+//        use typenum::U5 as N;
+//        type R = C<N>;
+//        type I = CIdeal<N>;
+//        let category = Category::<CanonModule<R, I>, Relation<R, I>>::new(1);
+//
+//        assert_eq!(category.into_objects().len(), 2);
+//    }
+//}
